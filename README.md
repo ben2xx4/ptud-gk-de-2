@@ -25,7 +25,7 @@
 ## Hướng dẫn cài đặt và chạy
 1. **Clone repository:**
    ```bash
-   git clone https://github.com/ben2xx4/fask-tiny-app.git
+   git clone https://github.com/ben2xx4/ptud-gk-de-2.git
    cd fask-tiny-app
    ```
 
@@ -42,7 +42,7 @@
    pip install -r requirements.txt
    ```
 
-4. **Khởi tạo cơ sở dữ liệu và chạy migrations (nếu sử dụng Flask-Migrate):**
+4. **Khởi tạo cơ sở dữ liệu và chạy migrations (nếu sử dụng Flask-Migrate),(trong source đã có sẳn database, có thể bỏ qua bước này):**
    ```bash
    flask db init
    flask db migrate
