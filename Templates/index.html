@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <title>Quản lý Công việc</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/fontawesome.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/templatemo-lugx-gaming.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/owl.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/animate.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swiper@7/swiper-bundle.min.css"
+    />
+    <style>
+      .pagination-btn {
+        border-radius: 8px;
+        padding: 8px 20px;
+        border: 1px solid #667eea;
+        color: #667eea;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        margin: 0 5px;
+      }
+      .pagination-btn:hover {
+        background: #667eea;
+        color: white;
+      }
+      /* Style cho avatar trong header */
+      .header-avatar {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="header-area header-sticky">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <nav class="main-nav">
+              <!-- LOGO -->
+              <a href="{{ url_for('home') }}" class="logo">
+                <img
+                  src="{{ url_for('static', filename='images/logo.png') }}"
+                  alt="IUH Logo"
+                  style="width: 158px"
+                />
+              </a>
+              <!-- MENU -->
+              <ul class="nav">
+                <li>
+                  <a href="{{ url_for('home') }}" class="active">Home</a>
+                </li>
+                {% if user %}
+                <li>
+                  <a href="{{ url_for('tasks') }}">Quản lý Task</a>
+                </li>
+                <li>
+                  <a href="{{ url_for('categories') }}">Phân loại Công việc</a>
+                </li>
+                {% endif %}
+                {% if user and user.is_admin %}
+                <li>
+                  <a href="{{ url_for('admin') }}">Trang Admin</a>
+                </li>
+                {% endif %}
+                {% if user %}
+                <!-- Hiển thị avatar nếu có -->
+                <li>
+                  <a href="{{ url_for('upload_avatar') }}">
+                    {% if user.avatar %}
+                    <img
+                      src="{{ url_for('static', filename=user.avatar) }}"
+                      alt="Avatar"
+                      class="header-avatar"
+                    />
+                    {% else %}
+                    <span>Avatar</span>
+                    {% endif %}
+                  </a>
+                </li>
+                <li><a href="{{ url_for('logout') }}">Đăng xuất</a></li>
+                {% else %}
+                <li><a href="{{ url_for('login') }}">Đăng nhập</a></li>
+                <li><a href="{{ url_for('register') }}">Đăng ký</a></li>
+                {% endif %}
+              </ul>
+              <a class="menu-trigger">
+                <span>Menu</span>
+              </a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN BANNER -->
+    <div class="main-banner">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 align-self-center">
+            <div class="caption header-text">
+              {% if user %}
+              <div class="mb-3 text-white">
+                <strong>Xin chào, {{ user.username }}!</strong>
+              </div>
+              {% endif %}
+              <h6>Chào mừng đến với hệ thống Quản lý Công Việc</h6>
+              <h2>Theo dõi công việc, trạng thái và deadline</h2>
+              <p>
+                Ứng dụng hỗ trợ bạn tạo, sắp xếp và hoàn thành công việc một cách
+                hiệu quả.
+              </p>
+            </div>
+          </div>
+          <div class="col-lg-4 offset-lg-2">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+              <div class="alert alert-info mt-3">
+                {% for message in messages %}
+                <div>{{ message }}</div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            {% endwith %}
+            <div class="right-image">
+              <img src="/static/images/iuh-banner-new.JPG" alt="IUH Banner" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DANH SÁCH CÔNG VIỆC -->
+    <div class="container bg-light my-4 py-4">
+      <h2 class="mb-4">Danh sách công việc của bạn</h2>
+      {% if tasks and tasks|length > 0 %}
+      <div class="row">
+        {% for task in tasks %}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ task.title }}</h5>
+              <p class="card-text">{{ task.content }}</p>
+              <p class="mb-1"><strong>Trạng thái:</strong> {{ task.status }}</p>
+              <p class="mb-1"><strong>Ngày tạo:</strong> {{ task.created_time }}</p>
+
+              {% if task.due_date %}
+              <p class="mb-1"><strong>Ngày hoàn thành (dự kiến):</strong> {{ task.due_date }}</p>
+              {% else %}
+              <p class="mb-1"><strong>Ngày hoàn thành (dự kiến):</strong> Chưa đặt</p>
+              {% endif %}
+
+              {% if task.finished_time %}
+              <p class="mb-1"><strong>Ngày hoàn thành (thực tế):</strong> {{ task.finished_time }}</p>
+              {% else %}
+              <p class="mb-1"><strong>Ngày hoàn thành (thực tế):</strong> Chưa hoàn thành</p>
+              {% endif %}
+
+              <p class="mb-1"><strong>Mức độ ưu tiên:</strong> {{ task.priority }}</p>
+
+              <!-- NÚT ĐÁNH DẤU HOÀN THÀNH -->
+              {% if task.status != 'done' and task.status != 'completed' %}
+              <form action="{{ url_for('finish_task', task_id=task.id) }}" method="POST">
+                <button type="submit" class="btn btn-success btn-sm">
+                    Đánh dấu hoàn thành
+                </button>
+            </form>
+              {% else %}
+              <!-- Hiển thị nhãn nếu công việc đã hoàn thành -->
+              <span class="badge bg-success mt-3">Đã hoàn thành</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p>
+        Hiện chưa có công việc nào. Bạn có thể thêm mới tại trang
+        <a href="{{ url_for('tasks') }}">Tasks</a>.
+      </p>
+      {% endif %}
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="col-lg-12">
+          <p>
+            Copyright © 2025
+            Thiết kế bởi <a href="#">Nhóm BenxNamzxje</a>.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/isotope.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/owl-carousel.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/counter.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
+    <script src="https://sf-cdn.coze.com/obj/unpkg-va/flow-platform/chat-app-sdk/1.2.0-beta.3/libs/oversea/index.js"></script>
+  </body>
+</html>
