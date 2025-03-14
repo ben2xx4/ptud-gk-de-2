@@ -26,7 +26,7 @@
 1. **Clone repository:**
    ```bash
    git clone https://github.com/ben2xx4/ptud-gk-de-2.git
-   cd fask-tiny-app
+   cd ptud-gk-de-2
    ```
 
 2. **Tạo và kích hoạt virtual environment:**
