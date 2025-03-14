@@ -22,7 +22,6 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # -------------------- MODELS --------------------
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -32,7 +31,6 @@ class User(db.Model):
     avatar = db.Column(db.String(255), nullable=True)
     tasks = db.relationship('Task', backref='user', lazy=True)
 
-# Khai báo Model Category để quản lý phân loại công việc
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -51,14 +49,12 @@ class Task(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
 
 # -------------------- HÀM HỖ TRỢ --------------------
-
 def current_user():
     if 'user_id' in session:
         return User.query.get(session['user_id'])
     return None
 
 # -------------------- ROUTES CHÍNH --------------------
-
 @app.route('/')
 def home():
     user = current_user()
@@ -118,7 +114,6 @@ def logout():
     return redirect(url_for('home'))
 
 # -------------------- ROUTES ADMIN --------------------
-
 @app.route('/admin')
 def admin():
     user = current_user()
@@ -154,6 +149,17 @@ def unblock_user(user_id):
     db.session.commit()
     flash(f'Đã mở khóa user {target_user.username}.')
     return redirect(url_for('admin'))
+@app.route('/admin/user_tasks/<int:user_id>')
+def admin_user_tasks(user_id):
+    user = current_user()
+    # Chỉ cho admin truy cập
+    if not user or not user.is_admin:
+        flash('Bạn không có quyền truy cập trang này.')
+        return redirect(url_for('home'))
+    
+    target_user = User.query.get_or_404(user_id)
+    tasks = Task.query.filter_by(user_id=target_user.id).order_by(Task.id.desc()).all()
+    return render_template('admin_user_tasks.html', user=user, target_user=target_user, tasks=tasks)
 
 @app.route('/admin/reset_password/<int:user_id>', methods=['GET', 'POST'])
 def reset_password(user_id):
@@ -173,7 +179,6 @@ def reset_password(user_id):
     return render_template('reset_password.html', target_user=target_user)
 
 # -------------------- ROUTES QUẢN LÝ CATEGORY --------------------
-# Đây là chức năng quản lý phân loại công việc
 @app.route('/categories', methods=['GET', 'POST'])
 def categories():
     user = current_user()
@@ -190,17 +195,40 @@ def categories():
     categories = Category.query.all()
     return render_template('categories.html', user=user, categories=categories)
 
+@app.route('/categories/edit/<int:cat_id>', methods=['GET', 'POST'])
+def edit_category(cat_id):
+    user = current_user()
+    if not user:
+        flash('Bạn cần đăng nhập.')
+        return redirect(url_for('login'))
+    cat = Category.query.get_or_404(cat_id)
+    if request.method == 'POST':
+        new_name = request.form['name']
+        cat.name = new_name
+        db.session.commit()
+        flash('Cập nhật phân loại thành công.')
+        return redirect(url_for('categories'))
+    return render_template('edit_category.html', user=user, category=cat)
 
+@app.route('/categories/delete/<int:cat_id>', methods=['POST'])
+def delete_category(cat_id):
+    user = current_user()
+    if not user:
+        flash('Bạn cần đăng nhập.')
+        return redirect(url_for('login'))
+    cat = Category.query.get_or_404(cat_id)
+    db.session.delete(cat)
+    db.session.commit()
+    flash('Đã xóa phân loại.')
+    return redirect(url_for('categories'))
 
 # -------------------- ROUTES UPLOAD AVATAR --------------------
-
 @app.route('/upload_avatar', methods=['GET', 'POST'])
 def upload_avatar():
     user = current_user()
     if not user:
         flash("Bạn cần đăng nhập để upload avatar.")
         return redirect(url_for('login'))
-    
     if request.method == 'POST':
         if 'avatar' not in request.files:
             flash('Không có file nào được chọn.')
@@ -216,27 +244,19 @@ def upload_avatar():
         db.session.commit()
         flash("Cập nhật avatar thành công!")
         return redirect(url_for('home'))
-    
     return render_template('upload_avatar.html', user=user)
 
 # -------------------- ROUTES QUẢN LÝ TASK --------------------
-
 @app.route('/tasks', methods=['GET', 'POST'])
 def tasks():
     user = current_user()
     if not user:
         flash('Bạn cần đăng nhập để quản lý công việc.')
         return redirect(url_for('login'))
-
-    # Xử lý tạo Task
     if request.method == 'POST':
         title = request.form['title']
         content = request.form.get('content', '')
-
-        # Lấy mức độ ưu tiên
         priority = request.form.get('priority', 'trung bình')
-
-        # Lấy ngày dự kiến hoàn thành
         due_date_str = request.form.get('due_date', '')
         due_date = None
         if due_date_str:
@@ -247,10 +267,8 @@ def tasks():
                     due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
                 except ValueError:
                     pass
-
-        # Lấy phân loại (category)
-        category_id = request.form.get('category_id', None)
-
+        # Lấy phân loại (category) từ trường 'category'
+        category_id = request.form.get('category', None)
         new_task = Task(
             title=title,
             content=content,
@@ -263,21 +281,11 @@ def tasks():
         db.session.commit()
         flash('Tạo task thành công.')
         return redirect(url_for('tasks'))
-    
     page = request.args.get('page', 1, type=int)
-    pagination = Task.query.filter_by(user_id=user.id).order_by(Task.id.desc()).paginate(
-        page=page,
-        per_page=5
-    )
+    pagination = Task.query.filter_by(user_id=user.id).order_by(Task.id.desc()).paginate(page=page, per_page=5)
     tasks_list = pagination.items
     categories = Category.query.all()
-    return render_template(
-        'tasks.html',
-        user=user,
-        tasks=tasks_list,
-        categories=categories,
-        pagination=pagination
-    )
+    return render_template('tasks.html', user=user, tasks=tasks_list, categories=categories, pagination=pagination)
 
 @app.route('/tasks/finish/<int:task_id>', methods=['POST'])
 def finish_task(task_id):
@@ -285,56 +293,15 @@ def finish_task(task_id):
     if not user:
         flash('Bạn cần đăng nhập.')
         return redirect(url_for('login'))
-
     task = Task.query.get_or_404(task_id)
-    # Kiểm tra quyền sở hữu hoặc quyền admin
     if task.user_id != user.id and not user.is_admin:
         flash('Bạn không có quyền.')
         return redirect(url_for('tasks'))
-
-    # Cập nhật trạng thái và thời gian hoàn thành
     task.status = 'done'
     task.finished_time = datetime.utcnow()
     db.session.commit()
-
     flash('Đã đánh dấu task hoàn thành.')
-    # Nếu muốn quay về trang chủ:
-    # return redirect(url_for('home'))
-    # Hoặc quay về trang tasks:
     return redirect(url_for('tasks'))
-
-# ... phần import, config, model, vv. như cũ ...
-
-@app.route('/categories/edit/<int:cat_id>', methods=['GET', 'POST'])
-def edit_category(cat_id):
-    user = current_user()
-    if not user:
-        flash('Bạn cần đăng nhập.')
-        return redirect(url_for('login'))
-
-    cat = Category.query.get_or_404(cat_id)
-    if request.method == 'POST':
-        new_name = request.form['name']
-        cat.name = new_name
-        db.session.commit()
-        flash('Cập nhật phân loại thành công.')
-        return redirect(url_for('categories'))
-    
-    # GET request: hiển thị form sửa
-    return render_template('edit_category.html', user=user, category=cat)
-
-@app.route('/categories/delete/<int:cat_id>', methods=['POST'])
-def delete_category(cat_id):
-    user = current_user()
-    if not user:
-        flash('Bạn cần đăng nhập.')
-        return redirect(url_for('login'))
-
-    cat = Category.query.get_or_404(cat_id)
-    db.session.delete(cat)
-    db.session.commit()
-    flash('Đã xóa phân loại.')
-    return redirect(url_for('categories'))
 
 @app.route('/delete_tasks', methods=['POST'])
 def delete_tasks():
@@ -367,7 +334,6 @@ def delete_task(task_id):
     return redirect(url_for('tasks'))
 
 # -------------------- KHỞI CHẠY APP --------------------
-
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

@@ -7,7 +7,8 @@
 ## Mô tả dự án
 Đây là một ứng dụng web đơn giản được xây dựng bằng Flask, cung cấp các chức năng chính như sau:
 
-- **Quản lý tài khoản người dùng:**  
+- **Quản lý tài khoản người dùng:**
+  - Bắt buộc đăng kí tài khoản khi vào web click vào Task chuyển đến đăng nhập.
   - Cho phép người dùng đăng ký, đăng nhập và upload avatar.
   
 - **Quản lý công việc (Task):**  
@@ -19,7 +20,7 @@
   - Người dùng có thể thêm, sửa và xoá danh mục phân loại công việc để dễ dàng sắp xếp và theo dõi các công việc.
   
 - **Chức năng quản trị (Admin):**  
-  - Admin có thể quản lý người dùng (khóa tài khoản, reset mật khẩu) và quản lý các công việc từ giao diện riêng.
+  - Admin có thể quản lý người dùng (khóa tài khoản, reset mật khẩu) và quản lý các công việc từ giao diện riêng, xem các task của User.
 
 ## Hướng dẫn cài đặt và chạy
 1. **Clone repository:**

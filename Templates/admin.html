@@ -42,6 +42,13 @@
       display: block;
       text-align: center;
     }
+    /* Style cho ảnh avatar trong bảng */
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;       /* Giúp ảnh không bị méo */
+      border-radius: 50%;     /* Ảnh tròn */
+    }
   </style>
 </head>
 <body>
@@ -63,6 +70,7 @@
           <tr>
             <th>ID</th>
             <th>Tên đăng nhập</th>
+            <th>Avatar</th> <!-- Thêm cột Avatar -->
             <th>Trạng thái</th>
             <th>Hành động</th>
           </tr>
@@ -73,6 +81,18 @@
             <td>{{ u.id }}</td>
             <td>{{ u.username }}</td>
             <td>
+              {% if u.avatar %}
+                <!-- Hiển thị ảnh đại diện -->
+                <img 
+                  src="{{ url_for('static', filename=u.avatar) }}" 
+                  alt="Avatar" 
+                  class="user-avatar"
+                />
+              {% else %}
+                <span class="text-muted">Chưa có</span>
+              {% endif %}
+            </td>
+            <td>
               {% if u.is_blocked %}
                 <span class="badge bg-danger">Blocked</span>
               {% else %}
@@ -80,6 +100,7 @@
               {% endif %}
             </td>
             <td>
+              <a href="{{ url_for('admin_user_tasks', user_id=u.id) }}" class="btn btn-sm btn-info">Xem Task</a>
               {% if u.is_blocked %}
                 <a href="{{ url_for('unblock_user', user_id=u.id) }}" class="btn btn-sm btn-warning">Unblock</a>
               {% else %}

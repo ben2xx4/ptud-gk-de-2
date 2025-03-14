@@ -186,13 +186,24 @@
 
               <p class="mb-1"><strong>Mức độ ưu tiên:</strong> {{ task.priority }}</p>
 
+              <!-- Hiển thị phân loại công việc (nếu có) -->
+              {% if task.category %}
+              <p class="mb-1">
+                <strong>Phân loại:</strong> {{ task.category.name }}
+              </p>
+              {% else %}
+              <p class="mb-1">
+                <strong>Phân loại:</strong> Chưa phân loại
+              </p>
+              {% endif %}
+
               <!-- NÚT ĐÁNH DẤU HOÀN THÀNH -->
               {% if task.status != 'done' and task.status != 'completed' %}
               <form action="{{ url_for('finish_task', task_id=task.id) }}" method="POST">
                 <button type="submit" class="btn btn-success btn-sm">
-                    Đánh dấu hoàn thành
+                  Đánh dấu hoàn thành
                 </button>
-            </form>
+              </form>
               {% else %}
               <!-- Hiển thị nhãn nếu công việc đã hoàn thành -->
               <span class="badge bg-success mt-3">Đã hoàn thành</span>
