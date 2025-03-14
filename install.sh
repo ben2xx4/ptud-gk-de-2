@@ -42,4 +42,4 @@ sqlite3 app.db
 .tables   -- Xem danh sách bảng
 .schema users;   -- Xem cấu trúc bảng "users"
 SELECT * FROM User;   -- Xem dữ liệu trong bảng "users"
-SELECT * FROM Post;
+SELECT * FROM User;
